@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ShipView Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --brand:#0B1929;--brand2:#162840;--accent:#00C896;--accent-h:#00a07a;
+  --warn:#E8A020;--warn-bg:#FEF3D7;--danger:#D94040;--danger-bg:#FDEAEA;
+  --ok:#1A9E5E;--ok-bg:#E0F5EC;--purple:#5A4FBF;--purple-bg:#EEEDF9;
+  --bg:#F2F4F8;--bg2:#E8ECF2;--bg3:#DDE2EA;--white:#fff;
+  --border:#D8DDE6;--border2:#C8CED8;
+  --ink:#0B1929;--ink2:#2E3F55;--ink3:#5A6B80;--ink4:#8A99AA;--ink5:#B0BBCA;
+  --r:10px;--r2:14px;--shadow:0 4px 16px rgba(11,25,41,.08),0 1px 4px rgba(11,25,41,.04);
+  --t:all 0.2s cubic-bezier(.4,0,.2,1);
+}
+html{-webkit-font-smoothing:antialiased}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+
+/* LOGIN */
+#login-screen{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  background:var(--brand);
+}
+.login-card{
+  background:var(--white);border-radius:20px;padding:36px 32px;
+  width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,.25);
+}
+.login-logo{display:flex;align-items:center;gap:10px;margin-bottom:28px}
+.login-mark{
+  width:38px;height:38px;border-radius:10px;background:var(--accent);
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:700;color:var(--brand)
+}
+.login-title{font-size:16px;font-weight:700;color:var(--ink)}
+.login-sub{font-size:12px;color:var(--ink3)}
+.form-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.09em;color:var(--ink3);margin-bottom:5px;margin-top:14px;display:block}
+.form-input{
+  width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:var(--r);
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;color:var(--ink);
+  background:var(--white);outline:none;transition:var(--t)
+}
+.form-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,200,150,.1)}
+.form-select{
+  width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:var(--r);
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;color:var(--ink);
+  background:var(--white);outline:none;transition:var(--t);cursor:pointer
+}
+.form-select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,200,150,.1)}
+.login-btn{
+  width:100%;margin-top:20px;padding:11px;border-radius:var(--r);border:none;
+  background:var(--brand);color:#fff;font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:13px;font-weight:600;cursor:pointer;transition:var(--t)
+}
+.login-btn:hover{background:var(--brand2)}
+.login-error{
+  margin-top:12px;padding:9px 12px;border-radius:var(--r);
+  background:var(--danger-bg);color:var(--danger);font-size:12px;
+  display:none
+}
+.login-error.show{display:block}
+
+/* TOPBAR */
+#app-screen{display:none}
+.topbar{
+  background:var(--brand);height:52px;padding:0 24px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:90;border-bottom:1px solid rgba(255,255,255,.05)
+}
+.tb-left{display:flex;align-items:center;gap:10px}
+.tb-mark{
+  width:30px;height:30px;border-radius:7px;background:var(--accent);
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;color:var(--brand)
+}
+.tb-name{font-size:13px;font-weight:700;color:#fff}
+.tb-badge{font-size:10px;color:rgba(255,255,255,.35);background:rgba(255,255,255,.08);padding:2px 8px;border-radius:4px;margin-left:4px}
+.tb-nav{display:flex;gap:2px}
+.tb-btn{
+  font-size:12px;font-weight:500;color:rgba(255,255,255,.45);
+  padding:5px 13px;border-radius:6px;border:none;background:none;cursor:pointer;transition:var(--t)
+}
+.tb-btn:hover{color:rgba(255,255,255,.8)}
+.tb-btn.active{color:#fff;background:rgba(255,255,255,.1)}
+.tb-right{display:flex;align-items:center;gap:8px}
+.logout-btn{
+  font-size:12px;font-weight:500;color:rgba(255,255,255,.45);
+  padding:5px 12px;border-radius:6px;border:1px solid rgba(255,255,255,.1);
+  background:none;cursor:pointer;transition:var(--t)
+}
+.logout-btn:hover{color:#fff;border-color:rgba(255,255,255,.25)}
+.portal-btn{
+  font-size:12px;font-weight:600;padding:5px 12px;border-radius:6px;
+  border:none;background:var(--accent);color:var(--brand);cursor:pointer;transition:var(--t)
+}
+.portal-btn:hover{background:var(--accent-h)}
+
+/* LAYOUT */
+.main{padding:22px 24px 60px}
+
+/* STATS ROW */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.stat-card{
+  background:var(--white);border:1px solid var(--border);border-radius:var(--r2);
+  padding:14px 16px;box-shadow:0 1px 3px rgba(11,25,41,.05)
+}
+.stat-lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--ink4);margin-bottom:5px}
+.stat-val{font-size:24px;font-weight:700;color:var(--ink);letter-spacing:-.03em;line-height:1}
+.stat-sub{font-size:11px;color:var(--ink4);margin-top:4px}
+
+/* SECTION */
+.section-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.section-title{font-size:13px;font-weight:600;color:var(--ink2)}
+
+/* TABLE */
+.table-wrap{background:var(--white);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;box-shadow:0 1px 3px rgba(11,25,41,.05)}
+.data-table{width:100%;border-collapse:collapse;font-size:12px}
+.data-table th{padding:10px 14px;text-align:left;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--ink4);border-bottom:1px solid var(--bg2);background:var(--bg)}
+.data-table td{padding:11px 14px;border-bottom:1px solid var(--bg2);vertical-align:middle}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tr{transition:var(--t)}
+.data-table tr:hover td{background:var(--bg)}
+
+/* STATUS PILL */
+.spill{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
+.sp-dot{width:5px;height:5px;border-radius:50%;display:inline-block}
+.s-transit{background:#EBF4FD;color:#0C4A8F}.s-transit .sp-dot{background:#1a6ec5}
+.s-aduana{background:var(--warn-bg);color:#8B4A00}.s-aduana .sp-dot{background:var(--warn)}
+.s-alerta{background:var(--danger-bg);color:#8B0000}.s-alerta .sp-dot{background:var(--danger)}
+.s-entregado{background:var(--ok-bg);color:#0A5A30}.s-entregado .sp-dot{background:var(--ok)}
+.s-preparando{background:var(--purple-bg);color:#2E2880}.s-preparando .sp-dot{background:var(--purple)}
+
+/* PROGRESS */
+.prog-wrap{display:flex;align-items:center;gap:8px}
+.prog-bar{flex:1;height:4px;background:var(--bg2);border-radius:4px;overflow:hidden;min-width:60px}
+.prog-fill{height:100%;border-radius:4px}
+.prog-pct{font-size:11px;color:var(--ink3);font-weight:500;white-space:nowrap}
+
+/* BUTTONS */
+.btn{
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;
+  padding:7px 14px;border-radius:8px;border:1px solid var(--border);
+  background:var(--white);color:var(--ink2);cursor:pointer;transition:var(--t);
+  display:inline-flex;align-items:center;gap:5px
+}
+.btn:hover{background:var(--bg);border-color:var(--border2);color:var(--ink)}
+.btn-primary{background:var(--brand);color:#fff;border-color:var(--brand)}
+.btn-primary:hover{background:var(--brand2)}
+.btn-danger{background:var(--danger-bg);color:var(--danger);border-color:rgba(217,64,64,.25)}
+.btn-danger:hover{background:#f8d0d0}
+.btn-sm{padding:5px 10px;font-size:11px;border-radius:6px}
+.btn-accent{background:var(--accent);color:var(--brand);border-color:var(--accent)}
+.btn-accent:hover{background:var(--accent-h)}
+
+/* MODAL */
+.modal-bg{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);
+  z-index:200;align-items:flex-start;justify-content:center;
+  padding:40px 16px;overflow-y:auto
+}
+.modal-bg.open{display:flex}
+.modal{
+  background:var(--white);border-radius:18px;padding:26px;
+  width:100%;max-width:580px;box-shadow:0 20px 60px rgba(0,0,0,.2);
+  animation:mUp .2s cubic-bezier(.4,0,.2,1)
+}
+@keyframes mUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.modal-hd{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px}
+.modal-title{font-size:15px;font-weight:700;color:var(--ink)}
+.modal-sub{font-size:12px;color:var(--ink3);margin-top:2px}
+.modal-close{width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--ink3);font-size:16px;transition:var(--t)}
+.modal-close:hover{background:var(--bg)}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-grid .full{grid-column:span 2}
+.form-footer{display:flex;gap:8px;margin-top:20px;justify-content:flex-end}
+
+/* TIMELINE EDITOR */
+.tl-editor{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+.tl-row-edit{display:grid;grid-template-columns:1fr 120px 120px 28px;gap:6px;align-items:center}
+.tl-row-edit input,.tl-row-edit select{
+  padding:6px 9px;border:1px solid var(--border);border-radius:6px;
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;color:var(--ink);
+  background:var(--white);outline:none;transition:var(--t)
+}
+.tl-row-edit input:focus,.tl-row-edit select:focus{border-color:var(--accent)}
+.tl-del-btn{
+  width:26px;height:26px;border-radius:6px;border:1px solid var(--border);
+  background:none;cursor:pointer;color:var(--ink4);font-size:14px;
+  display:flex;align-items:center;justify-content:center;transition:var(--t)
+}
+.tl-del-btn:hover{background:var(--danger-bg);color:var(--danger);border-color:rgba(217,64,64,.25)}
+
+/* CONTACT MESSAGES */
+.msg-card{background:var(--white);border:1px solid var(--border);border-radius:var(--r2);padding:14px 16px;margin-bottom:8px}
+.msg-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.msg-op{font-size:11px;font-weight:600;color:var(--accent-h)}
+.msg-time{font-size:11px;color:var(--ink4)}
+.msg-body{font-size:13px;color:var(--ink2);line-height:1.5}
+
+/* TOAST */
+#toast{
+  position:fixed;bottom:20px;right:20px;
+  background:var(--brand);color:#fff;font-size:13px;font-weight:500;
+  padding:11px 16px;border-radius:10px;border-left:3px solid var(--accent);
+  z-index:300;transform:translateY(60px);opacity:0;
+  transition:transform .25s cubic-bezier(.4,0,.2,1),opacity .25s;
+  pointer-events:none;max-width:300px;box-shadow:var(--shadow)
+}
+#toast.show{transform:translateY(0);opacity:1}
+
+/* TABS */
+.tab-content{display:none}
+.tab-content.active{display:block}
+
+/* EMPTY */
+.empty-state{
+  background:var(--white);border:1px solid var(--border);border-radius:var(--r2);
+  padding:48px 20px;text-align:center
+}
+.empty-icon{font-size:32px;margin-bottom:10px}
+.empty-title{font-size:14px;font-weight:600;color:var(--ink2);margin-bottom:4px}
+.empty-sub{font-size:12px;color:var(--ink3)}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-mark">SV</div>
+      <div>
+        <div class="login-title">ShipView Admin</div>
+        <div class="login-sub">Panel de gestión para forwarders</div>
+      </div>
+    </div>
+    <label class="form-label">Forwarder</label>
+    <select class="form-select" id="login-tenant">
+      <option value="lateam">LATEAM FOODS</option>
+      <option value="nipcargo">NIP CARGO</option>
+      <option value="aramis">ARAMIS GT</option>
+      <option value="silver">SILVER FREIGHT</option>
+    </select>
+    <label class="form-label">Contraseña</label>
+    <input class="form-input" type="password" id="login-pass" placeholder="Contraseña del panel" onkeydown="if(event.key==='Enter')doLogin()">
+    <div class="login-error" id="login-error">Credenciales incorrectas. Intentá de nuevo.</div>
+    <button class="login-btn" onclick="doLogin()">Ingresar al panel →</button>
+    <div style="margin-top:14px;padding:10px 12px;background:#F2F4F8;border-radius:8px;font-size:11px;color:#5A6B80">
+      <strong>Demo:</strong> LATEAM FOODS / lateam2025 · NIP CARGO / nipcargo2025
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app-screen">
+  <div class="topbar">
+    <div class="tb-left">
+      <div class="tb-mark" id="tb-mark">LF</div>
+      <div class="tb-name" id="tb-name">LATEAM FOODS</div>
+      <span class="tb-badge">Admin</span>
+    </div>
+    <div class="tb-nav">
+      <button class="tb-btn active" id="nav-embarques" onclick="showTab('embarques')">Embarques</button>
+      <button class="tb-btn" id="nav-documentos" onclick="showTab('documentos')">Documentos</button>
+      <button class="tb-btn" id="nav-mensajes" onclick="showTab('mensajes')">Mensajes</button>
+    </div>
+    <div class="tb-right">
+      <button class="portal-btn" onclick="openPortal()">Ver portal →</button>
+      <button class="logout-btn" onclick="doLogout()">Salir</button>
+    </div>
+  </div>
+
+  <div class="main">
+
+    <!-- STATS -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-lbl">Total embarques</div>
+        <div class="stat-val" id="stat-total">—</div>
+        <div class="stat-sub">Operaciones activas</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-lbl">En tránsito</div>
+        <div class="stat-val" id="stat-transit" style="color:#185FA5">—</div>
+        <div class="stat-sub">En camino</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-lbl">En aduana</div>
+        <div class="stat-val" id="stat-aduana" style="color:#E8A020">—</div>
+        <div class="stat-sub">En proceso</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-lbl">Con alerta</div>
+        <div class="stat-val" id="stat-alerta" style="color:#D94040">—</div>
+        <div class="stat-sub">Requieren atención</div>
+      </div>
+    </div>
+
+    <!-- TAB: EMBARQUES -->
+    <div class="tab-content active" id="tab-embarques">
+      <div class="section-hd">
+        <div class="section-title" id="ship-count">Embarques</div>
+        <button class="btn btn-primary" onclick="openNewShipment()">+ Nuevo embarque</button>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Referencia</th>
+              <th>Producto</th>
+              <th>Ruta</th>
+              <th>ETA</th>
+              <th>Progreso</th>
+              <th>Estado</th>
+              <th style="width:100px"></th>
+            </tr>
+          </thead>
+          <tbody id="ship-tbody">
+            <tr><td colspan="7" style="padding:28px;text-align:center;color:#8A99AA">Cargando…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB: DOCUMENTOS -->
+    <div class="tab-content" id="tab-documentos">
+      <div class="section-hd">
+        <div class="section-title" id="doc-count">Documentos</div>
+        <button class="btn btn-primary" onclick="openNewDoc()">+ Agregar documento</button>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Documento</th>
+              <th>Operación</th>
+              <th>Archivo</th>
+              <th>Fecha</th>
+              <th style="width:80px"></th>
+            </tr>
+          </thead>
+          <tbody id="doc-tbody">
+            <tr><td colspan="5" style="padding:28px;text-align:center;color:#8A99AA">Cargando…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB: MENSAJES -->
+    <div class="tab-content" id="tab-mensajes">
+      <div class="section-hd">
+        <div class="section-title">Mensajes de clientes</div>
+        <button class="btn" onclick="loadContacts()">↻ Actualizar</button>
+      </div>
+      <div id="contacts-list">
+        <div class="empty-state"><div class="empty-icon">💬</div><div class="empty-title">Sin mensajes</div><div class="empty-sub">Los mensajes del portal aparecen acá</div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL: NUEVO / EDITAR EMBARQUE -->
+<div class="modal-bg" id="modal-ship" onclick="closeModalBg(event,'modal-ship')">
+  <div class="modal">
+    <div class="modal-hd">
+      <div>
+        <div class="modal-title" id="modal-ship-title">Nuevo embarque</div>
+        <div class="modal-sub">Completá los datos del embarque</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('modal-ship')">×</button>
+    </div>
+    <div style="max-height:65vh;overflow-y:auto;padding-right:4px">
+      <input type="hidden" id="ship-edit-id">
+      <div class="form-grid">
+        <div class="full">
+          <label class="form-label">Producto *</label>
+          <input class="form-input" id="f-product" placeholder="Ej: Duraznos en almíbar Pavlides">
+        </div>
+        <div>
+          <label class="form-label">Detalle (peso / tipo)</label>
+          <input class="form-input" id="f-detail" placeholder="Ej: 20 toneladas · FCL 40'">
+        </div>
+        <div>
+          <label class="form-label">Estado *</label>
+          <select class="form-select" id="f-status">
+            <option value="preparando">Pre-embarque</option>
+            <option value="transit">En tránsito</option>
+            <option value="aduana">En aduana</option>
+            <option value="alerta">Alerta</option>
+            <option value="entregado">Entregado</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">Modo</label>
+          <select class="form-select" id="f-mode">
+            <option value="sea">Marítimo 🚢</option>
+            <option value="air">Aéreo ✈️</option>
+            <option value="road">Terrestre 🚛</option>
+            <option value="rail">Ferroviario 🚂</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">Progreso (%)</label>
+          <input class="form-input" id="f-progress" type="number" min="0" max="100" placeholder="0-100">
+        </div>
+        <div style="grid-column:span 2;border-top:1px solid var(--bg2);padding-top:14px;margin-top:4px">
+          <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.09em;color:var(--ink3);margin-bottom:10px">Origen → Destino</div>
+          <div class="form-grid" style="gap:10px">
+            <div>
+              <label class="form-label">Flag origen (emoji)</label>
+              <input class="form-input" id="f-origin-flag" placeholder="🇦🇷">
+            </div>
+            <div>
+              <label class="form-label">Ciudad origen</label>
+              <input class="form-input" id="f-origin-city" placeholder="Buenos Aires">
+            </div>
+            <div>
+              <label class="form-label">País origen</label>
+              <input class="form-input" id="f-origin-country" placeholder="Argentina">
+            </div>
+            <div>
+              <label class="form-label">Puerto origen</label>
+              <input class="form-input" id="f-origin-port" placeholder="Puerto Buenos Aires">
+            </div>
+            <div>
+              <label class="form-label">Flag destino (emoji)</label>
+              <input class="form-input" id="f-dest-flag" placeholder="🇧🇷">
+            </div>
+            <div>
+              <label class="form-label">Ciudad destino</label>
+              <input class="form-input" id="f-dest-city" placeholder="Santos">
+            </div>
+            <div>
+              <label class="form-label">País destino</label>
+              <input class="form-input" id="f-dest-country" placeholder="Brasil">
+            </div>
+            <div>
+              <label class="form-label">Puerto destino</label>
+              <input class="form-input" id="f-dest-port" placeholder="Porto de Santos">
+            </div>
+          </div>
+        </div>
+        <div>
+          <label class="form-label">ETD (zarpe)</label>
+          <input class="form-input" id="f-etd" type="date">
+        </div>
+        <div>
+          <label class="form-label">ETA (llegada)</label>
+          <input class="form-input" id="f-eta" type="date">
+        </div>
+        <div>
+          <label class="form-label">Contenedor</label>
+          <input class="form-input" id="f-container" placeholder="MSCU7823401">
+        </div>
+        <div>
+          <label class="form-label">Tipo contenedor</label>
+          <input class="form-input" id="f-container-type" placeholder="FCL 40'">
+        </div>
+        <div>
+          <label class="form-label">Naviera / Carrier</label>
+          <input class="form-input" id="f-carrier" placeholder="MSC Línea">
+        </div>
+        <div>
+          <label class="form-label">Voyage / Vuelo</label>
+          <input class="form-input" id="f-voyage" placeholder="ME241W">
+        </div>
+        <div>
+          <label class="form-label">Incoterm</label>
+          <input class="form-input" id="f-incoterm" placeholder="CIF Valparaíso">
+        </div>
+        <div>
+          <label class="form-label">Alerta (mensaje)</label>
+          <input class="form-input" id="f-alert" placeholder="Dejar vacío si no hay alerta">
+        </div>
+        <div>
+          <label class="form-label">Agente en destino</label>
+          <input class="form-input" id="f-dest-agent" placeholder="Agencia Local SA">
+        </div>
+        <div>
+          <label class="form-label">Teléfono agente</label>
+          <input class="form-input" id="f-dest-phone" placeholder="+54 11 0000-0000">
+        </div>
+        <div class="full" style="border-top:1px solid var(--bg2);padding-top:14px;margin-top:4px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.09em;color:var(--ink3)">Timeline del embarque</div>
+            <button class="btn btn-sm" type="button" onclick="addTimelineStep()">+ Paso</button>
+          </div>
+          <div class="tl-editor" id="tl-editor"></div>
+        </div>
+      </div>
+    </div>
+    <div class="form-footer">
+      <button class="btn" onclick="closeModal('modal-ship')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveShipment()">Guardar embarque</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: NUEVO DOCUMENTO -->
+<div class="modal-bg" id="modal-doc" onclick="closeModalBg(event,'modal-doc')">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-hd">
+      <div>
+        <div class="modal-title">Agregar documento</div>
+        <div class="modal-sub">Registrá un documento disponible para el cliente</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('modal-doc')">×</button>
+    </div>
+    <label class="form-label">Tipo de documento *</label>
+    <select class="form-select" id="d-type">
+      <option>Bill of Lading</option>
+      <option>Packing List</option>
+      <option>Certificado de Origen</option>
+      <option>Invoice comercial</option>
+      <option>Póliza de seguro</option>
+      <option>Certificado fitosanitario</option>
+      <option>Carta de crédito</option>
+      <option>Otro</option>
+    </select>
+    <label class="form-label" style="margin-top:12px">Operación relacionada</label>
+    <select class="form-select" id="d-shipment">
+      <option value="">— Sin operación —</option>
+    </select>
+    <label class="form-label" style="margin-top:12px">Nombre del archivo *</label>
+    <input class="form-input" id="d-filename" placeholder="BL_OP2025-038.pdf">
+    <label class="form-label" style="margin-top:12px">Tamaño</label>
+    <input class="form-input" id="d-size" placeholder="312 KB">
+    <div class="form-footer">
+      <button class="btn" onclick="closeModal('modal-doc')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveDocument()">Guardar documento</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+let authToken = null;
+let tenantId  = null;
+let tenantCfg = null;
+let allShips  = [];
+
+// ─── LOGIN ────────────────────────────────────────────────────────────────────
+async function doLogin() {
+  const t = document.getElementById('login-tenant').value;
+  const p = document.getElementById('login-pass').value.trim();
+  if (!p) { showErr('Ingresá la contraseña.'); return; }
+  try {
+    const res  = await fetch('/api/admin/login', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ tenant: t, password: p })
+    });
+    const data = await res.json();
+    if (!res.ok) { showErr(data.error || 'Error'); return; }
+    authToken = data.token;
+    tenantId  = t;
+    tenantCfg = data.tenant;
+    document.getElementById('login-error').classList.remove('show');
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app-screen').style.display   = 'block';
+    document.getElementById('tb-mark').textContent = tenantCfg.initials;
+    document.getElementById('tb-name').textContent = tenantCfg.name;
+    loadShipments();
+    loadDocuments();
+  } catch(e) { showErr('Error de conexión.'); }
+}
+
+function showErr(msg) {
+  const el = document.getElementById('login-error');
+  el.textContent = msg;
+  el.classList.add('show');
+}
+
+function doLogout() {
+  authToken = null; tenantId = null; tenantCfg = null; allShips = [];
+  document.getElementById('app-screen').style.display   = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('login-pass').value = '';
+}
+
+function openPortal() { window.open(`/?tenant=${tenantId}`, '_blank'); }
+
+// ─── AUTH HEADER ──────────────────────────────────────────────────────────────
+function ah() { return { 'Content-Type':'application/json', 'x-admin-token': authToken }; }
+
+// ─── TABS ─────────────────────────────────────────────────────────────────────
+function showTab(tab) {
+  ['embarques','documentos','mensajes'].forEach(t => {
+    document.getElementById(`tab-${t}`).classList.toggle('active', t === tab);
+    document.getElementById(`nav-${t}`).classList.toggle('active', t === tab);
+  });
+  if (tab === 'mensajes') loadContacts();
+}
+
+// ─── SHIPMENTS ────────────────────────────────────────────────────────────────
+async function loadShipments() {
+  const res  = await fetch('/api/admin/shipments', { headers: ah() });
+  allShips   = await res.json();
+  renderShips(allShips);
+  updateStats(allShips);
+}
+
+function updateStats(ships) {
+  document.getElementById('stat-total').textContent   = ships.length;
+  document.getElementById('stat-transit').textContent = ships.filter(s=>s.status==='transit').length;
+  document.getElementById('stat-aduana').textContent  = ships.filter(s=>s.status==='aduana').length;
+  document.getElementById('stat-alerta').textContent  = ships.filter(s=>s.status==='alerta').length;
+  document.getElementById('ship-count').textContent   = `Embarques (${ships.length})`;
+}
+
+function statusColor(s) {
+  return {transit:'#185FA5',aduana:'#E8A020',alerta:'#D94040',preparando:'#534AB7',entregado:'#1A9E5E'}[s]||'#B0BBCA';
+}
+
+function statusPill(s) {
+  const m = {transit:['s-transit','En tránsito'],aduana:['s-aduana','En aduana'],alerta:['s-alerta','Alerta'],preparando:['s-preparando','Pre-embarque'],entregado:['s-entregado','Entregado']};
+  const [cls,lbl] = m[s]||['s-preparando','—'];
+  return `<span class="spill ${cls}"><span class="sp-dot"></span>${lbl}</span>`;
+}
+
+function renderShips(ships) {
+  const tbody = document.getElementById('ship-tbody');
+  if (!ships.length) {
+    tbody.innerHTML = `<tr><td colspan="7" style="padding:36px;text-align:center">
+      <div style="font-size:24px;margin-bottom:8px">📦</div>
+      <div style="font-size:13px;font-weight:600;color:#2E3F55;margin-bottom:4px">Sin embarques</div>
+      <div style="font-size:12px;color:#8A99AA">Hacé clic en "Nuevo embarque" para agregar el primero</div>
+    </td></tr>`;
+    return;
+  }
+  tbody.innerHTML = ships.map(s => {
+    const etaStr = s.eta ? new Date(s.eta+'T00:00:00').toLocaleDateString('es-AR',{day:'numeric',month:'short'}) : (s.etd ? new Date(s.etd+'T00:00:00').toLocaleDateString('es-AR',{day:'numeric',month:'short'})+' (ETD)' : '—');
+    const route  = `${s.origin?.flag||''} ${s.origin?.city||'—'} → ${s.destination?.flag||''} ${s.destination?.city||'—'}`;
+    return `<tr>
+      <td><span style="font-family:monospace;font-size:12px;font-weight:700">${s.id}</span></td>
+      <td>
+        <div style="font-weight:500;color:#2E3F55;font-size:12px">${s.product}</div>
+        <div style="font-size:11px;color:#8A99AA">${s.detail||''}</div>
+      </td>
+      <td style="font-size:12px;color:#5A6B80">${route}</td>
+      <td style="font-size:12px;color:#2E3F55;font-weight:500">${etaStr}</td>
+      <td>
+        <div class="prog-wrap">
+          <div class="prog-bar"><div class="prog-fill" style="width:${s.progress}%;background:${statusColor(s.status)}"></div></div>
+          <span class="prog-pct">${s.progress}%</span>
+        </div>
+      </td>
+      <td>${statusPill(s.status)}</td>
+      <td>
+        <div style="display:flex;gap:5px">
+          <button class="btn btn-sm" onclick="openEditShipment('${s.id}')">Editar</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteShip('${s.id}')">✕</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ─── NEW SHIPMENT MODAL ───────────────────────────────────────────────────────
+function openNewShipment() {
+  document.getElementById('modal-ship-title').textContent = 'Nuevo embarque';
+  document.getElementById('ship-edit-id').value = '';
+  ['product','detail','container','container-type','carrier','voyage','incoterm','alert','dest-agent','dest-phone',
+   'origin-flag','origin-city','origin-country','origin-port',
+   'dest-flag','dest-city','dest-country','dest-port'].forEach(id => {
+    document.getElementById(`f-${id}`).value = '';
+  });
+  document.getElementById('f-status').value   = 'preparando';
+  document.getElementById('f-mode').value     = 'sea';
+  document.getElementById('f-progress').value = '0';
+  document.getElementById('f-eta').value      = '';
+  document.getElementById('f-etd').value      = '';
+  buildDefaultTlEditor('preparando');
+  document.getElementById('modal-ship').classList.add('open');
+}
+
+function openEditShipment(id) {
+  const s = allShips.find(x => x.id === id);
+  if (!s) return;
+  document.getElementById('modal-ship-title').textContent = `Editar ${id}`;
+  document.getElementById('ship-edit-id').value           = id;
+  document.getElementById('f-product').value              = s.product || '';
+  document.getElementById('f-detail').value               = s.detail  || '';
+  document.getElementById('f-status').value               = s.status  || 'preparando';
+  document.getElementById('f-mode').value                 = s.mode    || 'sea';
+  document.getElementById('f-progress').value             = s.progress ?? 0;
+  document.getElementById('f-eta').value                  = s.eta     || '';
+  document.getElementById('f-etd').value                  = s.etd     || '';
+  document.getElementById('f-container').value            = s.container      || '';
+  document.getElementById('f-container-type').value       = s.containerType  || '';
+  document.getElementById('f-carrier').value              = s.carrier        || '';
+  document.getElementById('f-voyage').value               = s.voyage         || '';
+  document.getElementById('f-incoterm').value             = s.incoterm       || '';
+  document.getElementById('f-alert').value                = s.alertMessage   || '';
+  document.getElementById('f-dest-agent').value           = s.destination_agent       || '';
+  document.getElementById('f-dest-phone').value           = s.destination_agent_phone || '';
+  document.getElementById('f-origin-flag').value          = s.origin?.flag    || '';
+  document.getElementById('f-origin-city').value          = s.origin?.city    || '';
+  document.getElementById('f-origin-country').value       = s.origin?.country || '';
+  document.getElementById('f-origin-port').value          = s.origin?.port    || '';
+  document.getElementById('f-dest-flag').value            = s.destination?.flag    || '';
+  document.getElementById('f-dest-city').value            = s.destination?.city    || '';
+  document.getElementById('f-dest-country').value         = s.destination?.country || '';
+  document.getElementById('f-dest-port').value            = s.destination?.port    || '';
+  renderTlEditor(s.timeline || []);
+  document.getElementById('modal-ship').classList.add('open');
+}
+
+function buildDefaultTlEditor(status) {
+  const steps = [
+    { label:'Reserva confirmada', date:'', state:'done'    },
+    { label:'Consolidación',      date:'', state:'pending' },
+    { label:'Zarpe',              date:'', state:'pending' },
+    { label:'En tránsito',        date:'', state:'pending' },
+    { label:'Entrega destino',    date:'', state:'pending' },
+  ];
+  if (status==='transit')   { steps[1].state='done'; steps[2].state='done'; steps[3].state='current'; }
+  else if (status==='aduana'){ steps[1].state='done'; steps[2].state='done'; steps[3].state='done'; steps[3].state='current'; }
+  else if (status==='alerta'){ steps[2].state='alert'; }
+  else if (status==='entregado'){ steps.forEach(s=>s.state='done'); }
+  else { steps[1].state = 'current'; }
+  renderTlEditor(steps);
+}
+
+function renderTlEditor(steps) {
+  const editor = document.getElementById('tl-editor');
+  editor.innerHTML = '';
+  steps.forEach((s, i) => editor.appendChild(makeTlRow(s, i)));
+}
+
+function makeTlRow(s, i) {
+  const div = document.createElement('div');
+  div.className = 'tl-row-edit';
+  div.innerHTML = `
+    <input placeholder="Ej: Zarpó de Piraeus" value="${s.label||''}">
+    <input placeholder="Ej: 01 Mar 2025" value="${s.date||s.date_label||''}">
+    <select>
+      <option value="done"   ${s.state==='done'?   'selected':''}>✓ Completado</option>
+      <option value="current"${s.state==='current'?'selected':''}>⏳ En curso</option>
+      <option value="pending"${s.state==='pending'?'selected':''}>○ Pendiente</option>
+      <option value="alert"  ${s.state==='alert'?  'selected':''}>⚠ Alerta</option>
+    </select>
+    <button class="tl-del-btn" type="button" title="Eliminar paso">✕</button>
+  `;
+  div.querySelector('.tl-del-btn').onclick = () => div.remove();
+  return div;
+}
+
+function addTimelineStep() {
+  const editor = document.getElementById('tl-editor');
+  editor.appendChild(makeTlRow({ label:'', date:'', state:'pending' }, editor.children.length));
+}
+
+function getTimelineFromEditor() {
+  return Array.from(document.getElementById('tl-editor').querySelectorAll('.tl-row-edit')).map(row => {
+    const inputs  = row.querySelectorAll('input');
+    const sel     = row.querySelector('select');
+    const st      = sel.value;
+    return { label: inputs[0].value.trim(), date: inputs[1].value.trim(), state: st, icon: st==='done'?'✓':st==='alert'?'⚠':'' };
+  });
+}
+
+async function saveShipment() {
+  const editId  = document.getElementById('ship-edit-id').value.trim();
+  const product = document.getElementById('f-product').value.trim();
+  if (!product) { toast('El producto es obligatorio.'); return; }
+
+  const payload = {
+    product,
+    detail:          document.getElementById('f-detail').value.trim(),
+    status:          document.getElementById('f-status').value,
+    mode:            document.getElementById('f-mode').value,
+    progress:        parseInt(document.getElementById('f-progress').value) || 0,
+    eta:             document.getElementById('f-eta').value || null,
+    etd:             document.getElementById('f-etd').value || null,
+    container:       document.getElementById('f-container').value.trim(),
+    containerType:   document.getElementById('f-container-type').value.trim(),
+    carrier:         document.getElementById('f-carrier').value.trim(),
+    voyage:          document.getElementById('f-voyage').value.trim(),
+    incoterm:        document.getElementById('f-incoterm').value.trim(),
+    alertMessage:    document.getElementById('f-alert').value.trim() || null,
+    destAgent:       document.getElementById('f-dest-agent').value.trim(),
+    destPhone:       document.getElementById('f-dest-phone').value.trim(),
+    originFlag:      document.getElementById('f-origin-flag').value.trim(),
+    originCity:      document.getElementById('f-origin-city').value.trim(),
+    originCountry:   document.getElementById('f-origin-country').value.trim(),
+    originPort:      document.getElementById('f-origin-port').value.trim(),
+    destinationFlag:    document.getElementById('f-dest-flag').value.trim(),
+    destinationCity:    document.getElementById('f-dest-city').value.trim(),
+    destinationCountry: document.getElementById('f-dest-country').value.trim(),
+    destinationPort:    document.getElementById('f-dest-port').value.trim(),
+    timeline:        getTimelineFromEditor(),
+  };
+
+  try {
+    let res;
+    if (editId) {
+      res = await fetch(`/api/admin/shipments/${editId}`, { method:'PUT', headers:ah(), body:JSON.stringify(payload) });
+    } else {
+      res = await fetch('/api/admin/shipments', { method:'POST', headers:ah(), body:JSON.stringify(payload) });
+    }
+    const data = await res.json();
+    if (!res.ok) { toast('Error: ' + (data.error||'Desconocido')); return; }
+    toast(editId ? `✓ Embarque ${editId} actualizado` : `✓ Embarque ${data.id} creado`);
+    closeModal('modal-ship');
+    loadShipments();
+  } catch(e) { toast('Error de red.'); }
+}
+
+async function deleteShip(id) {
+  if (!confirm(`¿Eliminar el embarque ${id}? Esta acción no se puede deshacer.`)) return;
+  const res = await fetch(`/api/admin/shipments/${id}`, { method:'DELETE', headers:ah() });
+  if (res.ok) { toast(`✓ Embarque ${id} eliminado`); loadShipments(); }
+  else toast('Error al eliminar.');
+}
+
+// ─── DOCUMENTS ────────────────────────────────────────────────────────────────
+async function loadDocuments() {
+  const res  = await fetch('/api/admin/documents', { headers: ah() });
+  const docs = await res.json();
+  renderDocs(docs);
+  // populate shipment selector in doc modal
+  const sel = document.getElementById('d-shipment');
+  const currentOps = await fetch(`/api/admin/shipments`, { headers: ah() }).then(r=>r.json());
+  sel.innerHTML = '<option value="">— Sin operación —</option>' +
+    currentOps.map(s=>`<option value="${s.id}">${s.id} — ${s.product}</option>`).join('');
+}
+
+function renderDocs(docs) {
+  const tbody = document.getElementById('doc-tbody');
+  document.getElementById('doc-count').textContent = `Documentos (${docs.length})`;
+  if (!docs.length) {
+    tbody.innerHTML = `<tr><td colspan="5" style="padding:28px;text-align:center;color:#8A99AA">Sin documentos. Agregá el primero.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = docs.map(d => `<tr>
+    <td>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="width:28px;height:28px;border-radius:6px;background:${d.iconBg||'#E6F1FB'};display:flex;align-items:center;justify-content:center;font-size:14px">${d.icon||'📄'}</div>
+        <span style="font-weight:500;color:#2E3F55;font-size:12px">${d.type}</span>
+        ${d.isNew ? '<span style="font-size:10px;font-weight:700;background:#E0F5EC;color:#0A5A30;padding:1px 5px;border-radius:3px">NUEVO</span>' : ''}
+      </div>
+    </td>
+    <td style="font-size:12px;color:#5A6B80">${d.shipmentId||'—'}</td>
+    <td style="font-size:12px;color:#5A6B80;font-family:monospace">${d.filename}</td>
+    <td style="font-size:12px;color:#8A99AA">${d.date||'—'}</td>
+    <td><button class="btn btn-sm btn-danger" onclick="deleteDoc('${d.id}')">✕ Eliminar</button></td>
+  </tr>`).join('');
+}
+
+function openNewDoc() {
+  document.getElementById('d-type').value     = 'Bill of Lading';
+  document.getElementById('d-filename').value = '';
+  document.getElementById('d-size').value     = '';
+  document.getElementById('modal-doc').classList.add('open');
+}
+
+async function saveDocument() {
+  const filename = document.getElementById('d-filename').value.trim();
+  if (!filename) { toast('El nombre del archivo es obligatorio.'); return; }
+  const payload = {
+    type:       document.getElementById('d-type').value,
+    shipmentId: document.getElementById('d-shipment').value || null,
+    filename,
+    size:       document.getElementById('d-size').value.trim() || null,
+    icon:       iconForType(document.getElementById('d-type').value),
+    iconBg:     bgForType(document.getElementById('d-type').value),
+  };
+  const res  = await fetch('/api/admin/documents', { method:'POST', headers:ah(), body:JSON.stringify(payload) });
+  const data = await res.json();
+  if (res.ok) { toast('✓ Documento agregado'); closeModal('modal-doc'); loadDocuments(); }
+  else toast('Error: ' + (data.error||'Desconocido'));
+}
+
+async function deleteDoc(id) {
+  if (!confirm('¿Eliminar este documento?')) return;
+  const res = await fetch(`/api/admin/documents/${id}`, { method:'DELETE', headers:ah() });
+  if (res.ok) { toast('✓ Documento eliminado'); loadDocuments(); }
+  else toast('Error al eliminar.');
+}
+
+function iconForType(t) {
+  const m = {'Bill of Lading':'📜','Packing List':'📋','Certificado de Origen':'🏛️','Invoice comercial':'🧾','Póliza de seguro':'🛡️','Certificado fitosanitario':'🌿','Carta de crédito':'💳'};
+  return m[t] || '📄';
+}
+function bgForType(t) {
+  const m = {'Bill of Lading':'#E6F1FB','Packing List':'#E1F5EE','Certificado de Origen':'#FAEEDA','Invoice comercial':'#E1F5EE','Póliza de seguro':'#EEEDF9','Certificado fitosanitario':'#E1F5EE','Carta de crédito':'#FAECE7'};
+  return m[t] || '#E6F1FB';
+}
+
+// ─── CONTACTS ─────────────────────────────────────────────────────────────────
+async function loadContacts() {
+  const res  = await fetch('/api/admin/contacts', { headers: ah() });
+  const msgs = await res.json();
+  const list = document.getElementById('contacts-list');
+  if (!msgs.length) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">💬</div><div class="empty-title">Sin mensajes</div><div class="empty-sub">Los mensajes del portal aparecen acá en tiempo real</div></div>`;
+    return;
+  }
+  list.innerHTML = msgs.map(m => `
+    <div class="msg-card">
+      <div class="msg-hd">
+        <span class="msg-op">${m.shipment_id ? `Sobre: ${m.shipment_id}` : 'Consulta general'}</span>
+        <span class="msg-time">${new Date(m.created_at).toLocaleString('es-AR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</span>
+      </div>
+      <div class="msg-body">${m.message}</div>
+    </div>
+  `).join('');
+}
+
+// ─── MODALS ───────────────────────────────────────────────────────────────────
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function closeModalBg(e, id) { if (e.target === document.getElementById(id)) closeModal(id); }
+
+// ─── TOAST ────────────────────────────────────────────────────────────────────
+let _tt;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(_tt);
+  _tt = setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// Auto-build timeline on status change
+document.getElementById('f-status').addEventListener('change', function() {
+  if (!document.getElementById('ship-edit-id').value) buildDefaultTlEditor(this.value);
+});
+</script>
+</body>
+</html>

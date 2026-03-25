@@ -1,58 +1,105 @@
+require('dotenv').config();
 const express = require('express');
-const path = require('path');
+const path    = require('path');
+const db      = require('./lib/db');
 
-const app = express();
+const app  = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ─── API ROUTES ───────────────────────────────────────────
+function requireAdmin(req, res, next) {
+  const token = req.headers['x-admin-token'];
+  if (!token) return res.status(401).json({ error: 'No autorizado' });
+  const [tenantId, password] = token.split(':');
+  if (!tenantId || !password) return res.status(401).json({ error: 'Token inválido' });
+  db.verifyAdmin(tenantId, password).then(ok => {
+    if (!ok) return res.status(401).json({ error: 'Credenciales incorrectas' });
+    req.tenantId = tenantId;
+    next();
+  }).catch(() => res.status(500).json({ error: 'Error de autenticación' }));
+}
 
-// GET /api/config/:tenant  → brand config for white-label
-app.get('/api/config/:tenant', (req, res) => {
-  const tenants = require('./data/tenants.json');
-  const tenant = tenants[req.params.tenant];
-  if (!tenant) return res.status(404).json({ error: 'Tenant not found' });
-  res.json(tenant);
+// PUBLIC
+app.get('/api/config/:tenant', async (req, res) => {
+  const t = await db.getTenant(req.params.tenant);
+  if (!t) return res.status(404).json({ error: 'Tenant no encontrado' });
+  res.json(t);
 });
-
-// GET /api/shipments/:tenant  → all active shipments for a client
-app.get('/api/shipments/:tenant', (req, res) => {
-  const shipments = require('./data/shipments.json');
-  const result = shipments.filter(s => s.tenant === req.params.tenant);
-  res.json(result);
+app.get('/api/shipments/:tenant', async (req, res) => {
+  res.json(await db.getShipments(req.params.tenant));
 });
-
-// GET /api/shipments/:tenant/:id  → single shipment detail
-app.get('/api/shipments/:tenant/:id', (req, res) => {
-  const shipments = require('./data/shipments.json');
-  const item = shipments.find(s => s.tenant === req.params.tenant && s.id === req.params.id);
-  if (!item) return res.status(404).json({ error: 'Shipment not found' });
-  res.json(item);
+app.get('/api/shipments/:tenant/:id', async (req, res) => {
+  const s = await db.getShipment(req.params.tenant, req.params.id);
+  if (!s) return res.status(404).json({ error: 'No encontrado' });
+  res.json(s);
 });
-
-// GET /api/documents/:tenant  → documents list
-app.get('/api/documents/:tenant', (req, res) => {
-  const docs = require('./data/documents.json');
-  const result = docs.filter(d => d.tenant === req.params.tenant);
-  res.json(result);
+app.get('/api/documents/:tenant', async (req, res) => {
+  res.json(await db.getDocuments(req.params.tenant));
 });
-
-// POST /api/contact  → contact form submission
-app.post('/api/contact', (req, res) => {
+app.post('/api/contact', async (req, res) => {
   const { tenant, message, shipmentId } = req.body;
-  // In production: send email, create ticket, etc.
-  console.log(`[CONTACT] tenant=${tenant} shipment=${shipmentId} msg="${message}"`);
+  if (!tenant || !message) return res.status(400).json({ error: 'Faltan campos' });
+  await db.saveContact(tenant, shipmentId, message);
   res.json({ ok: true, message: 'Mensaje recibido. Tu ejecutivo responderá en breve.' });
 });
 
-// Catch-all: serve the SPA for any non-API route
+// ADMIN AUTH
+app.post('/api/admin/login', async (req, res) => {
+  const { tenant, password } = req.body;
+  if (!tenant || !password) return res.status(400).json({ error: 'Faltan campos' });
+  const ok = await db.verifyAdmin(tenant, password);
+  if (!ok) return res.status(401).json({ error: 'Credenciales incorrectas' });
+  const t = await db.getTenant(tenant);
+  res.json({ ok: true, token: `${tenant}:${password}`, tenant: t });
+});
+
+// ADMIN SHIPMENTS
+app.get('/api/admin/shipments', requireAdmin, async (req, res) => {
+  res.json(await db.getShipments(req.tenantId));
+});
+app.post('/api/admin/shipments', requireAdmin, async (req, res) => {
+  try { res.json({ ok: true, id: await db.createShipment(req.tenantId, req.body) }); }
+  catch(e) { res.status(500).json({ error: e.message }); }
+});
+app.put('/api/admin/shipments/:id', requireAdmin, async (req, res) => {
+  try { await db.updateShipment(req.tenantId, req.params.id, req.body); res.json({ ok: true }); }
+  catch(e) { res.status(500).json({ error: e.message }); }
+});
+app.delete('/api/admin/shipments/:id', requireAdmin, async (req, res) => {
+  try { await db.deleteShipment(req.tenantId, req.params.id); res.json({ ok: true }); }
+  catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// ADMIN DOCUMENTS
+app.get('/api/admin/documents', requireAdmin, async (req, res) => {
+  res.json(await db.getDocuments(req.tenantId));
+});
+app.post('/api/admin/documents', requireAdmin, async (req, res) => {
+  try { res.json({ ok: true, id: await db.createDocument(req.tenantId, req.body) }); }
+  catch(e) { res.status(500).json({ error: e.message }); }
+});
+app.delete('/api/admin/documents/:id', requireAdmin, async (req, res) => {
+  try { await db.deleteDocument(req.tenantId, req.params.id); res.json({ ok: true }); }
+  catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// ADMIN CONTACTS + TENANT
+app.get('/api/admin/contacts', requireAdmin, async (req, res) => {
+  res.json(await db.getContacts(req.tenantId));
+});
+app.put('/api/admin/tenant', requireAdmin, async (req, res) => {
+  try { await db.updateTenant(req.tenantId, req.body); res.json({ ok: true }); }
+  catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// SPA catch-all
 app.get('/{*splat}', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 app.listen(PORT, () => {
-  console.log(`\n  ShipView server running on http://localhost:${PORT}`);
-  console.log(`  Demo tenants: /lateam  /nipcargo  /aramis  /silver\n`);
+  console.log(`\n  ShipView running on http://localhost:${PORT}`);
+  console.log(`  Admin: http://localhost:${PORT}/admin\n`);
 });
