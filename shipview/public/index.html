@@ -1,0 +1,1615 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ShipView — Portal de Seguimiento</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+
+<style>
+/* ═══════════════════════════════════════════
+   RESET & TOKENS
+═══════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 14px; -webkit-font-smoothing: antialiased; }
+
+:root {
+  --brand:      #0B1929;
+  --brand-mid:  #162840;
+  --brand-soft: #1e3a54;
+  --accent:     #00C896;
+  --accent-h:   #00a07a;
+  --accent-dim: rgba(0,200,150,0.12);
+  --warn:       #E8A020;
+  --warn-bg:    #FEF3D7;
+  --danger:     #D94040;
+  --danger-bg:  #FDEAEA;
+  --ok:         #1A9E5E;
+  --ok-bg:      #E0F5EC;
+  --purple:     #5A4FBF;
+  --purple-bg:  #EEEDF9;
+
+  --bg:         #F2F4F8;
+  --bg2:        #E8ECF2;
+  --bg3:        #DDE2EA;
+  --white:      #FFFFFF;
+  --border:     #D8DDE6;
+  --border2:    #C8CED8;
+
+  --ink:        #0B1929;
+  --ink2:       #2E3F55;
+  --ink3:       #5A6B80;
+  --ink4:       #8A99AA;
+  --ink5:       #B0BBCA;
+
+  --r:   10px;
+  --r2:  14px;
+  --r3:  18px;
+  --shadow-sm: 0 1px 3px rgba(11,25,41,0.06), 0 1px 2px rgba(11,25,41,0.04);
+  --shadow:    0 4px 16px rgba(11,25,41,0.08), 0 1px 4px rgba(11,25,41,0.04);
+  --t: all 0.24s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ═══════════════════════════════════════════
+   TYPOGRAPHY SCALE
+═══════════════════════════════════════════ */
+.t-display {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-size: 1.75rem;
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+.t-title  { font-size: 0.9375rem; font-weight: 600; line-height: 1.3; }
+.t-label  { font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.09em; }
+.t-body   { font-size: 0.8125rem; font-weight: 400; line-height: 1.55; }
+.t-small  { font-size: 0.75rem;   font-weight: 400; line-height: 1.5; }
+.t-micro  { font-size: 0.6875rem; font-weight: 500; }
+.t-mono   { font-family: 'SF Mono', 'Consolas', monospace; font-size: 0.75rem; }
+
+/* ═══════════════════════════════════════════
+   DEMO SWITCHER BAR
+═══════════════════════════════════════════ */
+#demo-bar {
+  background: #060e18;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  padding: 0 24px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+#demo-bar .db-label {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: rgba(255,255,255,0.28);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+}
+#demo-bar .db-pills {
+  display: flex;
+  gap: 4px;
+}
+#demo-bar .db-pill {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 5px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: transparent;
+  color: rgba(255,255,255,0.4);
+  cursor: pointer;
+  transition: var(--t);
+  letter-spacing: 0.02em;
+}
+#demo-bar .db-pill:hover { color: rgba(255,255,255,0.75); border-color: rgba(255,255,255,0.2); }
+#demo-bar .db-pill.active { color: #fff; background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.25); }
+#demo-bar .db-sep { width: 1px; height: 16px; background: rgba(255,255,255,0.08); flex-shrink: 0; }
+#demo-bar .db-note { font-size: 0.625rem; color: rgba(255,255,255,0.18); white-space: nowrap; }
+
+/* ═══════════════════════════════════════════
+   TOPBAR / NAV
+═══════════════════════════════════════════ */
+#topbar {
+  background: var(--brand);
+  height: 52px;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 90;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.tb-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  text-decoration: none;
+}
+#brand-mark {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--brand);
+  letter-spacing: -0.01em;
+  flex-shrink: 0;
+}
+.tb-brand-text {}
+#brand-name {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+}
+.tb-brand-tag {
+  font-size: 0.625rem;
+  color: rgba(255,255,255,0.35);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+}
+
+.tb-nav {
+  display: flex;
+  gap: 2px;
+}
+.tb-nav-btn {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: rgba(255,255,255,0.45);
+  padding: 5px 14px;
+  border-radius: 7px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  transition: var(--t);
+}
+.tb-nav-btn:hover { color: rgba(255,255,255,0.8); }
+.tb-nav-btn.active { color: #fff; background: rgba(255,255,255,0.1); }
+
+.tb-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.tb-icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,0.07);
+  color: rgba(255,255,255,0.55);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  position: relative;
+  transition: var(--t);
+}
+.tb-icon-btn:hover { background: rgba(255,255,255,0.13); color: #fff; }
+.tb-notif-dot {
+  position: absolute;
+  top: 5px; right: 5px;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--warn);
+  border: 1.5px solid var(--brand);
+}
+#user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--brand);
+  cursor: pointer;
+  border: 2px solid rgba(255,255,255,0.12);
+  flex-shrink: 0;
+}
+
+/* ═══════════════════════════════════════════
+   HERO
+═══════════════════════════════════════════ */
+#hero {
+  background: var(--brand);
+  padding: 28px 24px 32px;
+  position: relative;
+  overflow: hidden;
+}
+#hero::before {
+  content: '';
+  position: absolute;
+  top: -80px; right: -80px;
+  width: 360px; height: 360px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,200,150,0.08) 0%, transparent 65%);
+  pointer-events: none;
+}
+.hero-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+.hero-left {}
+.hero-greeting {
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.38);
+  font-weight: 400;
+  margin-bottom: 3px;
+  letter-spacing: 0.02em;
+}
+.hero-title {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-size: 1.5rem;
+  font-weight: 400;
+  color: #fff;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+.hero-sub {
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.35);
+  margin-top: 4px;
+  font-weight: 400;
+}
+.hero-right {}
+.hero-am {
+  text-align: right;
+}
+.hero-am-label {
+  font-size: 0.625rem;
+  color: rgba(255,255,255,0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  margin-bottom: 2px;
+}
+.hero-am-name {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.7);
+}
+.hero-am-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 6px;
+  background: var(--accent);
+  color: var(--brand);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: var(--t);
+  letter-spacing: 0.02em;
+}
+.hero-am-btn:hover { background: var(--accent-h); }
+
+.hero-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.kpi-card {
+  background: rgba(255,255,255,0.055);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: var(--r2);
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: var(--t);
+}
+.kpi-card:hover { background: rgba(255,255,255,0.09); }
+.kpi-card.active-filter { background: var(--accent-dim); border-color: rgba(0,200,150,0.3); }
+.kpi-label-txt {
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(255,255,255,0.35);
+  margin-bottom: 6px;
+}
+.kpi-number {
+  font-size: 1.625rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+.kpi-delta {
+  font-size: 0.6875rem;
+  margin-top: 5px;
+  font-weight: 400;
+  color: rgba(255,255,255,0.3);
+}
+.delta-green { color: var(--accent); }
+.delta-warn  { color: var(--warn); }
+.delta-red   { color: #ef8080; }
+
+/* ═══════════════════════════════════════════
+   MAIN CONTENT AREA
+═══════════════════════════════════════════ */
+#main {
+  padding: 20px 24px 60px;
+  max-width: 1100px;
+}
+
+/* Search */
+.search-wrap {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+  padding: 9px 14px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 18px;
+  box-shadow: var(--shadow-sm);
+  transition: var(--t);
+}
+.search-wrap:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(0,200,150,0.1);
+}
+.search-icon { color: var(--ink4); font-size: 0.875rem; flex-shrink: 0; }
+.search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.8125rem;
+  color: var(--ink);
+  background: transparent;
+}
+.search-input::placeholder { color: var(--ink5); }
+.search-badge {
+  font-size: 0.625rem;
+  color: var(--ink4);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-family: 'SF Mono', monospace;
+}
+
+/* Section headers */
+.section-hd {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.section-hd-title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ink2);
+}
+.section-hd-link {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--accent-h);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: var(--t);
+}
+.section-hd-link:hover { color: var(--accent); }
+
+/* ═══════════════════════════════════════════
+   SHIPMENT CARDS
+═══════════════════════════════════════════ */
+#shipment-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 22px;
+}
+
+.ship-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+  overflow: hidden;
+  cursor: pointer;
+  transition: var(--t);
+  box-shadow: var(--shadow-sm);
+}
+.ship-card:hover { border-color: var(--border2); box-shadow: var(--shadow); transform: translateY(-1px); }
+.ship-card.expanded { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(0,200,150,0.12), var(--shadow); }
+.ship-card.hidden { display: none; }
+
+.ship-status-bar {
+  height: 3px;
+  width: 100%;
+}
+
+.ship-top {
+  padding: 14px 16px 10px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.ship-mode-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+.mode-sea  { background: #EBF4FD; }
+.mode-air  { background: #FEF3D7; }
+.mode-road { background: #E0F5EC; }
+.mode-rail { background: #EEEDF9; }
+
+.ship-info { flex: 1; min-width: 0; }
+.ship-ref {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: 0.02em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+.ship-product {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--ink2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ship-route {
+  font-size: 0.75rem;
+  color: var(--ink4);
+  margin-top: 3px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.ship-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.ship-eta-block { text-align: right; }
+.eta-lbl { font-size: 0.625rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink4); display: block; }
+.eta-val { font-size: 0.9375rem; font-weight: 700; color: var(--ink); letter-spacing: -0.02em; }
+
+/* Status pills */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+.s-dot { width: 5px; height: 5px; border-radius: 50%; display: inline-block; }
+.s-transit   { background: #EBF4FD; color: #0C4A8F; }
+.s-transit   .s-dot { background: #1a6ec5; }
+.s-aduana    { background: var(--warn-bg); color: #8B4A00; }
+.s-aduana    .s-dot { background: var(--warn); }
+.s-alerta    { background: var(--danger-bg); color: #8B0000; }
+.s-alerta    .s-dot { background: var(--danger); }
+.s-entregado { background: var(--ok-bg); color: #0A5A30; }
+.s-entregado .s-dot { background: var(--ok); }
+.s-preparando{ background: var(--purple-bg); color: #2E2880; }
+.s-preparando .s-dot { background: var(--purple); }
+
+/* Alert tag */
+.alert-tag {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--danger);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Progress */
+.ship-progress {
+  padding: 0 16px 12px;
+}
+.progress-track {
+  height: 3px;
+  background: var(--bg2);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 5px;
+}
+.progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+}
+.progress-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.6875rem;
+  color: var(--ink4);
+}
+.progress-meta .warn-text { color: var(--warn); font-weight: 500; }
+.progress-meta .ok-text   { color: var(--ok); font-weight: 500; }
+.progress-meta .err-text  { color: var(--danger); font-weight: 500; }
+
+/* ═══════════════════════════════════════════
+   EXPANDED DETAIL
+═══════════════════════════════════════════ */
+.ship-detail {
+  display: none;
+  border-top: 1px solid var(--bg2);
+  animation: expandIn 0.22s cubic-bezier(0.4,0,0.2,1);
+}
+.ship-card.expanded .ship-detail { display: block; }
+
+@keyframes expandIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Timeline */
+.timeline-wrap { padding: 16px 16px 0; }
+.timeline-label {
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink4);
+  margin-bottom: 14px;
+}
+.tl-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  position: relative;
+}
+.tl-row::before {
+  content: '';
+  position: absolute;
+  top: 15px;
+  left: calc(10% + 4px);
+  right: calc(10% + 4px);
+  height: 1px;
+  background: var(--bg3);
+  z-index: 0;
+}
+.tl-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+.tl-node {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1.5px solid var(--bg3);
+  background: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-bottom: 7px;
+  transition: var(--t);
+}
+.tl-node.done    { background: var(--accent); border-color: var(--accent); color: #fff; font-size: 0.625rem; }
+.tl-node.current { background: var(--white); border-color: var(--accent); border-width: 2px; box-shadow: 0 0 0 4px rgba(0,200,150,0.12); }
+.tl-node.pending { background: var(--bg); border-color: var(--bg3); }
+.tl-node.alert   { background: var(--danger-bg); border-color: var(--danger); color: var(--danger); }
+
+.tl-txt {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--ink4);
+  text-align: center;
+  line-height: 1.35;
+}
+.tl-txt.done    { color: var(--ok); }
+.tl-txt.current { color: var(--ink2); font-weight: 600; }
+.tl-txt.alert   { color: var(--danger); }
+.tl-date {
+  font-size: 0.625rem;
+  color: var(--ink5);
+  text-align: center;
+  margin-top: 2px;
+}
+
+/* Detail cells */
+.detail-cells {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin-top: 14px;
+  border-top: 1px solid var(--bg2);
+}
+.detail-cell {
+  padding: 12px 16px;
+  border-right: 1px solid var(--bg2);
+}
+.detail-cell:last-child { border-right: none; }
+.dc-label {
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--ink4);
+  margin-bottom: 3px;
+}
+.dc-val {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+.dc-sub {
+  font-size: 0.6875rem;
+  color: var(--ink3);
+  margin-top: 1px;
+}
+.dc-warn { color: var(--warn); }
+.dc-err  { color: var(--danger); }
+
+/* Alert box */
+.alert-box {
+  margin: 12px 16px 0;
+  background: var(--danger-bg);
+  border: 1px solid rgba(217,64,64,0.2);
+  border-radius: var(--r);
+  padding: 10px 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.alert-box.warn-box {
+  background: var(--warn-bg);
+  border-color: rgba(232,160,32,0.25);
+}
+.ab-icon { font-size: 0.875rem; flex-shrink: 0; margin-top: 1px; }
+.ab-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--danger);
+}
+.ab-title.warn { color: #8B4A00; }
+.ab-sub {
+  font-size: 0.6875rem;
+  color: var(--ink3);
+  margin-top: 1px;
+}
+
+/* Actions */
+.detail-actions {
+  padding: 12px 16px;
+  border-top: 1px solid var(--bg2);
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+.act-btn {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 6px 13px;
+  border-radius: 7px;
+  border: 1px solid var(--border);
+  background: var(--white);
+  color: var(--ink2);
+  cursor: pointer;
+  transition: var(--t);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  letter-spacing: 0.01em;
+}
+.act-btn:hover { background: var(--bg); border-color: var(--border2); color: var(--ink); }
+.act-btn.primary {
+  background: var(--brand);
+  color: #fff;
+  border-color: var(--brand);
+}
+.act-btn.primary:hover { background: var(--brand-mid); }
+
+/* ═══════════════════════════════════════════
+   DOCUMENTS TAB
+═══════════════════════════════════════════ */
+.doc-table-wrap {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+.doc-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+.doc-table th {
+  text-align: left;
+  padding: 10px 16px;
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink4);
+  border-bottom: 1px solid var(--bg2);
+  background: var(--bg);
+}
+.doc-table td {
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--bg2);
+  vertical-align: middle;
+}
+.doc-table tr:last-child td { border-bottom: none; }
+.doc-table tr { cursor: pointer; transition: var(--t); }
+.doc-table tr:hover td { background: var(--bg); }
+.doc-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.doc-icon-box {
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  flex-shrink: 0;
+}
+.doc-name-text { font-weight: 500; color: var(--ink2); }
+.new-badge {
+  font-size: 0.5625rem;
+  font-weight: 700;
+  background: var(--ok-bg);
+  color: var(--ok);
+  padding: 1px 5px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.doc-table .col-op    { color: var(--ink3); font-size: 0.75rem; }
+.doc-table .col-date  { color: var(--ink4); font-size: 0.75rem; }
+.doc-table .col-size  { color: var(--ink4); font-size: 0.75rem; font-family: 'SF Mono', monospace; }
+
+/* ═══════════════════════════════════════════
+   HISTORIAL TAB
+═══════════════════════════════════════════ */
+.hist-empty {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+  padding: 40px 20px;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+}
+.hist-empty .he-icon { font-size: 2rem; margin-bottom: 10px; }
+.hist-empty .he-title { font-size: 0.875rem; font-weight: 600; color: var(--ink2); margin-bottom: 4px; }
+.hist-empty .he-sub { font-size: 0.8125rem; color: var(--ink3); }
+
+/* ═══════════════════════════════════════════
+   SUPPORT / CONTACT STRIP
+═══════════════════════════════════════════ */
+.support-strip {
+  background: var(--brand);
+  border-radius: var(--r2);
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 8px;
+  position: relative;
+  overflow: hidden;
+}
+.support-strip::after {
+  content: '';
+  position: absolute;
+  top: -50px; right: -30px;
+  width: 180px; height: 180px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,200,150,0.1) 0%, transparent 70%);
+  pointer-events: none;
+}
+.ss-text {}
+.ss-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 2px;
+}
+.ss-sub {
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.42);
+  font-weight: 400;
+}
+.ss-btn {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 8px 16px;
+  border-radius: 7px;
+  background: var(--accent);
+  color: var(--brand);
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: var(--t);
+  position: relative;
+  z-index: 1;
+  letter-spacing: 0.01em;
+}
+.ss-btn:hover { background: var(--accent-h); }
+
+/* ═══════════════════════════════════════════
+   CONTACT MODAL
+═══════════════════════════════════════════ */
+.modal-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+}
+.modal-backdrop.open { display: flex; animation: fadeIn 0.18s ease; }
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.modal {
+  background: var(--white);
+  border-radius: var(--r3);
+  padding: 24px;
+  width: 100%;
+  max-width: 420px;
+  margin: 16px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  animation: modalUp 0.22s cubic-bezier(0.4,0,0.2,1);
+}
+@keyframes modalUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+.modal-hd {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.modal-title { font-size: 0.9375rem; font-weight: 700; color: var(--ink); }
+.modal-sub { font-size: 0.75rem; color: var(--ink3); margin-top: 2px; }
+.modal-close {
+  width: 28px; height: 28px; border-radius: 50%;
+  border: 1px solid var(--border);
+  background: none;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--ink3); font-size: 1rem;
+  transition: var(--t);
+}
+.modal-close:hover { background: var(--bg); color: var(--ink); }
+.modal-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink3);
+  margin-bottom: 5px;
+  margin-top: 12px;
+}
+.modal-input {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.8125rem;
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  outline: none;
+  color: var(--ink);
+  background: var(--white);
+  transition: var(--t);
+  resize: none;
+}
+.modal-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,200,150,0.1); }
+.modal-footer {
+  display: flex;
+  gap: 8px;
+  margin-top: 18px;
+}
+.modal-cancel {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: none;
+  color: var(--ink3);
+  cursor: pointer;
+  transition: var(--t);
+}
+.modal-cancel:hover { background: var(--bg); }
+.modal-send {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  flex: 1;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  padding: 9px 16px;
+  border-radius: 8px;
+  border: none;
+  background: var(--brand);
+  color: #fff;
+  cursor: pointer;
+  transition: var(--t);
+}
+.modal-send:hover { background: var(--brand-mid); }
+
+/* ═══════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════ */
+#toast {
+  position: fixed;
+  bottom: 20px; right: 20px;
+  background: var(--brand);
+  color: #fff;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  padding: 11px 16px;
+  border-radius: 10px;
+  border-left: 3px solid var(--accent);
+  z-index: 300;
+  transform: translateY(70px);
+  opacity: 0;
+  transition: transform 0.28s cubic-bezier(0.4,0,0.2,1), opacity 0.28s;
+  pointer-events: none;
+  max-width: 320px;
+  box-shadow: var(--shadow);
+}
+#toast.visible { transform: translateY(0); opacity: 1; }
+
+/* ═══════════════════════════════════════════
+   POWEREDBY FOOTER
+═══════════════════════════════════════════ */
+.powered-footer {
+  text-align: center;
+  padding: 16px;
+  font-size: 0.625rem;
+  color: var(--ink5);
+  letter-spacing: 0.04em;
+}
+.powered-footer a { color: var(--accent-h); text-decoration: none; }
+
+/* ═══════════════════════════════════════════
+   LOADING STATE
+═══════════════════════════════════════════ */
+.skeleton {
+  background: linear-gradient(90deg, var(--bg2) 25%, var(--bg3) 50%, var(--bg2) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: 6px;
+}
+@keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+/* ═══════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════ */
+@media (max-width: 700px) {
+  #main { padding: 14px 14px 60px; }
+  #hero { padding: 20px 14px 24px; }
+  #topbar { padding: 0 14px; }
+  #demo-bar { padding: 0 14px; }
+  .hero-kpis { grid-template-columns: repeat(2, 1fr); }
+  .tb-nav { display: none; }
+  .tl-row { grid-template-columns: 1fr; gap: 8px; }
+  .tl-row::before { display: none; }
+  .tl-step { flex-direction: row; gap: 10px; justify-content: flex-start; }
+  .tl-node { margin-bottom: 0; flex-shrink: 0; }
+  .detail-cells { grid-template-columns: 1fr 1fr; }
+  .detail-cells .detail-cell:nth-child(2) { border-right: none; }
+  .detail-cells .detail-cell:nth-child(3) { grid-column: span 2; border-right: none; border-top: 1px solid var(--bg2); }
+  .doc-table .col-date, .doc-table .col-size { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- DEMO SWITCHER -->
+<div id="demo-bar">
+  <span class="db-label">Demo white-label</span>
+  <div class="db-pills">
+    <button class="db-pill active" onclick="loadTenant('lateam', this)">LATEAM FOODS</button>
+    <button class="db-pill" onclick="loadTenant('nipcargo', this)">NIP CARGO</button>
+    <button class="db-pill" onclick="loadTenant('aramis', this)">ARAMIS GT</button>
+    <button class="db-pill" onclick="loadTenant('silver', this)">SILVER FREIGHT</button>
+  </div>
+  <div class="db-sep"></div>
+  <span class="db-note">Cada forwarder configura su marca, colores y cliente</span>
+</div>
+
+<!-- TOPBAR -->
+<div id="topbar">
+  <div class="tb-brand">
+    <div id="brand-mark">LF</div>
+    <div class="tb-brand-text">
+      <div id="brand-name">LATEAM FOODS</div>
+      <div class="tb-brand-tag">Portal de seguimiento · Powered by ShipView</div>
+    </div>
+  </div>
+  <div class="tb-nav">
+    <button class="tb-nav-btn active" id="nav-embarques" onclick="showTab('embarques')">Mis embarques</button>
+    <button class="tb-nav-btn" id="nav-documentos" onclick="showTab('documentos')">Documentos</button>
+    <button class="tb-nav-btn" id="nav-historial" onclick="showTab('historial')">Historial</button>
+  </div>
+  <div class="tb-right">
+    <button class="tb-icon-btn" onclick="showToast('Sin nuevas notificaciones.')">
+      🔔
+      <div class="tb-notif-dot"></div>
+    </button>
+    <button class="tb-icon-btn" onclick="openContact(null)">💬</button>
+    <div id="user-avatar">GD</div>
+  </div>
+</div>
+
+<!-- HERO -->
+<div id="hero">
+  <div class="hero-row">
+    <div class="hero-left">
+      <div class="hero-greeting" id="hero-greeting">Buenos días,</div>
+      <div class="hero-title" id="hero-client">Grupo Distribuciones SA</div>
+      <div class="hero-sub" id="hero-date">Resumen de operaciones · —</div>
+    </div>
+    <div class="hero-right">
+      <div class="hero-am">
+        <div class="hero-am-label">Ejecutivo de cuenta</div>
+        <div class="hero-am-name" id="am-name">Valentina Torres</div>
+        <button class="hero-am-btn" onclick="openContact(null)">💬 Contactar</button>
+      </div>
+    </div>
+  </div>
+  <div class="hero-kpis" id="hero-kpis">
+    <div class="kpi-card" id="kpi-all" onclick="filterKpi('all')">
+      <div class="kpi-label-txt">Total activos</div>
+      <div class="kpi-number" id="kpi-total">—</div>
+      <div class="kpi-delta">Operaciones en curso</div>
+    </div>
+    <div class="kpi-card" id="kpi-transit" onclick="filterKpi('transit')">
+      <div class="kpi-label-txt">En tránsito</div>
+      <div class="kpi-number" id="kpi-n-transit">—</div>
+      <div class="kpi-delta delta-green" id="kpi-d-transit">—</div>
+    </div>
+    <div class="kpi-card" id="kpi-aduana" onclick="filterKpi('aduana')">
+      <div class="kpi-label-txt">En aduana</div>
+      <div class="kpi-number" id="kpi-n-aduana">—</div>
+      <div class="kpi-delta delta-warn" id="kpi-d-aduana">—</div>
+    </div>
+    <div class="kpi-card" id="kpi-alerta" onclick="filterKpi('alerta')">
+      <div class="kpi-label-txt">Con alerta</div>
+      <div class="kpi-number" id="kpi-n-alerta">—</div>
+      <div class="kpi-delta delta-red" id="kpi-d-alerta">—</div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+
+  <!-- TAB: EMBARQUES -->
+  <div id="tab-embarques">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input class="search-input" id="search-input" type="text" placeholder="Buscar por referencia, producto, origen o destino…" oninput="filterSearch(this.value)">
+      <span class="search-badge">⌘K</span>
+    </div>
+
+    <div class="section-hd">
+      <div class="section-hd-title" id="grid-count">Embarques activos</div>
+      <button class="section-hd-link" onclick="filterKpi('all')">Ver todos</button>
+    </div>
+
+    <div id="shipment-grid"><!-- rendered by JS --></div>
+
+    <div class="support-strip">
+      <div class="ss-text">
+        <div class="ss-title">¿Tenés alguna consulta?</div>
+        <div class="ss-sub">Tu ejecutivo responde en menos de 2 horas en horario hábil.</div>
+      </div>
+      <button class="ss-btn" onclick="openContact(null)">Contactar ahora</button>
+    </div>
+  </div>
+
+  <!-- TAB: DOCUMENTOS -->
+  <div id="tab-documentos" style="display:none">
+    <div class="section-hd">
+      <div class="section-hd-title">Documentos</div>
+      <button class="section-hd-link" onclick="showToast('Preparando descarga de todos los documentos…')">Descargar todos</button>
+    </div>
+    <div class="doc-table-wrap">
+      <table class="doc-table" id="doc-table">
+        <thead>
+          <tr>
+            <th>Documento</th>
+            <th>Operación</th>
+            <th class="col-date">Fecha</th>
+            <th class="col-size">Tamaño</th>
+            <th style="width:100px"></th>
+          </tr>
+        </thead>
+        <tbody id="doc-tbody">
+          <tr><td colspan="5" style="padding:28px;text-align:center;color:var(--ink4);">Cargando…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB: HISTORIAL -->
+  <div id="tab-historial" style="display:none">
+    <div class="section-hd">
+      <div class="section-hd-title">Historial de operaciones</div>
+      <button class="section-hd-link" onclick="showToast('Generando reporte Excel…')">Exportar Excel</button>
+    </div>
+    <div class="hist-empty">
+      <div class="he-icon">📦</div>
+      <div class="he-title">Historial completo</div>
+      <div class="he-sub">47 operaciones completadas · Vista completa disponible próximamente</div>
+      <button class="act-btn primary" style="margin-top:14px" onclick="showToast('Descargando historial…')">📊 Descargar historial</button>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<!-- POWERED BY FOOTER -->
+<div class="powered-footer">Portal operado por <a href="#">ShipView</a> · Tecnología para forwarders</div>
+
+<!-- CONTACT MODAL -->
+<div class="modal-backdrop" id="modal-backdrop" onclick="closeContact(event)">
+  <div class="modal">
+    <div class="modal-hd">
+      <div>
+        <div class="modal-title">Contactar a tu ejecutivo</div>
+        <div class="modal-sub" id="modal-am-sub">Valentina Torres · v.torres@lateamfoods.com</div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-label">Operación relacionada (opcional)</div>
+    <input class="modal-input" id="modal-shipment" type="text" placeholder="Ej: OP-2025-041" readonly>
+    <div class="modal-label">Tu consulta</div>
+    <textarea class="modal-input" id="modal-msg" rows="4" placeholder="Escribí tu consulta…"></textarea>
+    <div class="modal-footer">
+      <button class="modal-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="modal-send" onclick="sendContact()">Enviar mensaje →</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+let currentTenant = 'lateam';
+let allShipments  = [];
+let tenantConfig  = {};
+let activeFilter  = 'all';
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+(async function init() {
+  setGreetingAndDate();
+  await loadTenant('lateam', document.querySelector('.db-pill.active'));
+})();
+
+function setGreetingAndDate() {
+  const now = new Date();
+  const h = now.getHours();
+  const g = h < 12 ? 'Buenos días,' : h < 19 ? 'Buenas tardes,' : 'Buenas noches,';
+  document.getElementById('hero-greeting').textContent = g;
+  const opts = { weekday:'long', day:'numeric', month:'long', year:'numeric' };
+  document.getElementById('hero-date').textContent =
+    'Resumen de operaciones · ' + now.toLocaleDateString('es-AR', opts);
+}
+
+// ═══════════════════════════════════════════
+// TENANT LOADING
+// ═══════════════════════════════════════════
+async function loadTenant(tenantId, btn) {
+  currentTenant = tenantId;
+  document.querySelectorAll('.db-pill').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  try {
+    const [cfg, ships, docs] = await Promise.all([
+      fetch(`/api/config/${tenantId}`).then(r => r.json()),
+      fetch(`/api/shipments/${tenantId}`).then(r => r.json()),
+      fetch(`/api/documents/${tenantId}`).then(r => r.json())
+    ]);
+
+    tenantConfig = cfg;
+    allShipments = ships;
+
+    applyBranding(cfg);
+    renderShipments(ships);
+    renderKpis(ships);
+    renderDocuments(docs, cfg);
+    resetFilter();
+
+    showToast(`✓ Vista: ${cfg.name} · ${cfg.client.name}`);
+  } catch(e) {
+    console.error(e);
+    showToast('Error cargando datos del tenant.');
+  }
+}
+
+// ═══════════════════════════════════════════
+// BRANDING
+// ═══════════════════════════════════════════
+function applyBranding(cfg) {
+  document.documentElement.style.setProperty('--brand',    cfg.colorPrimary);
+  document.documentElement.style.setProperty('--brand-mid', adjustColor(cfg.colorPrimary, 15));
+  document.documentElement.style.setProperty('--accent',   cfg.colorAccent);
+  document.documentElement.style.setProperty('--accent-h', cfg.colorAccentHover);
+  document.documentElement.style.setProperty('--accent-dim', hexToRgba(cfg.colorAccent, 0.12));
+
+  document.getElementById('brand-mark').textContent    = cfg.initials;
+  document.getElementById('brand-mark').style.background = cfg.colorAccent;
+  document.getElementById('brand-mark').style.color    = cfg.colorPrimary;
+  document.getElementById('brand-name').textContent    = cfg.name;
+  document.getElementById('hero-client').textContent   = cfg.client.name;
+  document.getElementById('user-avatar').textContent   = cfg.client.initials;
+  document.getElementById('user-avatar').style.background = cfg.colorAccent;
+  document.getElementById('user-avatar').style.color   = cfg.colorPrimary;
+  document.getElementById('am-name').textContent       = cfg.client.account_manager;
+  document.getElementById('modal-am-sub').textContent  =
+    cfg.client.account_manager + ' · ' + cfg.client.account_manager_email;
+}
+
+function hexToRgba(hex, a) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+function adjustColor(hex, amount) {
+  let [r,g,b] = [1,3,5].map(i => Math.min(255, parseInt(hex.slice(i,i+2),16)+amount));
+  return '#'+[r,g,b].map(v=>v.toString(16).padStart(2,'0')).join('');
+}
+
+// ═══════════════════════════════════════════
+// KPI RENDER
+// ═══════════════════════════════════════════
+function renderKpis(ships) {
+  const n_transit    = ships.filter(s => s.status === 'transit').length;
+  const n_aduana     = ships.filter(s => s.status === 'aduana').length;
+  const n_alerta     = ships.filter(s => s.status === 'alerta').length;
+  const n_preparando = ships.filter(s => s.status === 'preparando').length;
+
+  document.getElementById('kpi-total').textContent    = ships.length;
+  document.getElementById('kpi-n-transit').textContent = n_transit;
+  document.getElementById('kpi-n-aduana').textContent  = n_aduana;
+  document.getElementById('kpi-n-alerta').textContent  = n_alerta;
+
+  document.getElementById('kpi-d-transit').textContent =
+    n_transit > 0 ? `${n_transit} en camino` : 'Sin embarques en tránsito';
+  document.getElementById('kpi-d-aduana').textContent  =
+    n_aduana > 0 ? `${n_aduana} en proceso` : 'Sin embarques en aduana';
+  document.getElementById('kpi-d-alerta').textContent  =
+    n_alerta > 0 ? `${n_alerta} requieren atención` : 'Sin alertas activas';
+}
+
+// ═══════════════════════════════════════════
+// SHIPMENT GRID RENDER
+// ═══════════════════════════════════════════
+function statusBarColor(status) {
+  return { transit:'#185FA5', aduana:'#E8A020', alerta:'#D94040', preparando:'#5A4FBF', entregado:'#1A9E5E' }[status] || '#B0BBCA';
+}
+
+function statusPillHTML(s) {
+  const map = {
+    transit:    ['s-transit',    'En tránsito'],
+    aduana:     ['s-aduana',     'En aduana'],
+    alerta:     ['s-alerta',     'Alerta'],
+    preparando: ['s-preparando', 'Pre-embarque'],
+    entregado:  ['s-entregado',  'Entregado'],
+  };
+  const [cls, lbl] = map[s] || ['s-preparando','—'];
+  return `<span class="status-pill ${cls}"><span class="s-dot"></span>${lbl}</span>`;
+}
+
+function modeIcon(mode) {
+  const map = { sea:'🚢', air:'✈️', road:'🚛', rail:'🚂' };
+  const bg  = { sea:'mode-sea', air:'mode-air', road:'mode-road', rail:'mode-rail' };
+  return `<div class="ship-mode-icon ${bg[mode]||'mode-sea'}">${map[mode]||'📦'}</div>`;
+}
+
+function etaDisplay(s) {
+  if (!s.eta && !s.etd) return `<div class="ship-eta-block"><span class="eta-lbl">Estado</span><span class="eta-val" style="color:var(--danger)">Bloqueado</span></div>`;
+  const date = s.eta || s.etd;
+  const lbl  = s.eta ? 'ETA' : 'ETD';
+  const d    = new Date(date);
+  const str  = d.toLocaleDateString('es-AR', { day:'numeric', month:'short' });
+  return `<div class="ship-eta-block"><span class="eta-lbl">${lbl}</span><span class="eta-val">${str}</span></div>`;
+}
+
+function progressMetaHTML(s) {
+  if (s.status === 'alerta')
+    return `<span>${s.progress}% completado</span><span class="err-text">${s.alertMessage || 'Alerta activa'}</span>`;
+  if (s.status === 'aduana' && s.alertMessage)
+    return `<span>${s.progress}% completado</span><span class="warn-text">${s.alertMessage}</span>`;
+  if (s.status === 'preparando')
+    return `<span>${s.progress}% completado</span><span style="color:var(--ink4)">Zarpe: ${s.etd ? new Date(s.etd).toLocaleDateString('es-AR',{day:'numeric',month:'short',year:'numeric'}) : '—'}</span>`;
+  return `<span>${s.progress}% completado</span><span class="ok-text">${s.alertSub || 'On time'}</span>`;
+}
+
+function alertBoxHTML(s) {
+  if (s.status === 'alerta')
+    return `<div class="alert-box"><span class="ab-icon">🚫</span><div><div class="ab-title">${s.alertMessage}</div><div class="ab-sub">${s.alertSub || ''}</div></div></div>`;
+  if ((s.status === 'aduana' || s.status === 'preparando') && s.alertMessage)
+    return `<div class="alert-box warn-box"><span class="ab-icon">⚠️</span><div><div class="ab-title warn">${s.alertMessage}</div><div class="ab-sub">${s.alertSub || ''}</div></div></div>`;
+  return '';
+}
+
+function timelineHTML(steps) {
+  return steps.map(step => {
+    const nodeClass = step.state;
+    const labelClass = step.state;
+    const icon = step.state === 'done' ? '✓' : step.state === 'alert' ? '⚠' : step.icon || '';
+    return `
+      <div class="tl-step">
+        <div class="tl-node ${nodeClass}">${icon}</div>
+        <div class="tl-txt ${labelClass}">${step.label}</div>
+        <div class="tl-date">${step.date}</div>
+      </div>`;
+  }).join('');
+}
+
+function renderShipments(ships) {
+  const grid = document.getElementById('shipment-grid');
+  if (!ships.length) {
+    grid.innerHTML = `<div style="background:var(--white);border:1px solid var(--border);border-radius:var(--r2);padding:32px;text-align:center;color:var(--ink3);">No hay embarques activos.</div>`;
+    return;
+  }
+  grid.innerHTML = ships.map(s => `
+    <div class="ship-card" data-id="${s.id}" data-status="${s.status}" onclick="toggleCard(this)">
+      <div class="ship-status-bar" style="background:${statusBarColor(s.status)}"></div>
+      <div class="ship-top">
+        ${modeIcon(s.mode)}
+        <div class="ship-info">
+          <div class="ship-ref">
+            <span>${s.id}</span>
+            ${s.status === 'alerta' ? '<span class="alert-tag">⚠ Alerta</span>' : ''}
+          </div>
+          <div class="ship-product">${s.product} · ${s.detail}</div>
+          <div class="ship-route">
+            <span>${s.origin.flag} ${s.origin.city}</span>
+            <span style="color:var(--ink5)">→</span>
+            <span>${s.destination.flag} ${s.destination.city}</span>
+          </div>
+        </div>
+        <div class="ship-right">
+          ${etaDisplay(s)}
+          ${statusPillHTML(s.status)}
+        </div>
+      </div>
+      <div class="ship-progress">
+        <div class="progress-track">
+          <div class="progress-fill" style="width:${s.progress}%;background:${statusBarColor(s.status)}"></div>
+        </div>
+        <div class="progress-meta">${progressMetaHTML(s)}</div>
+      </div>
+      <div class="ship-detail">
+        <div class="timeline-wrap">
+          <div class="timeline-label">Estado del embarque</div>
+          <div class="tl-row">${timelineHTML(s.timeline)}</div>
+        </div>
+        ${alertBoxHTML(s)}
+        <div class="detail-cells">
+          <div class="detail-cell">
+            <div class="dc-label">Contenedor</div>
+            <div class="dc-val t-mono">${s.container}</div>
+            <div class="dc-sub">${s.containerType} · ${s.carrier}</div>
+          </div>
+          <div class="detail-cell">
+            <div class="dc-label">Incoterm</div>
+            <div class="dc-val">${s.incoterm}</div>
+            <div class="dc-sub">Puerto destino: ${s.destination.port}</div>
+          </div>
+          <div class="detail-cell">
+            <div class="dc-label">Agente en destino</div>
+            <div class="dc-val">${s.destination_agent}</div>
+            <div class="dc-sub">${s.destination_agent_phone}</div>
+          </div>
+        </div>
+        <div class="detail-actions">
+          <button class="act-btn primary" onclick="openContact('${s.id}');event.stopPropagation()">💬 Consultar sobre este embarque</button>
+          <button class="act-btn" onclick="showToast('Descargando documentos de ${s.id}…');event.stopPropagation()">📄 Documentos</button>
+          <button class="act-btn" onclick="showToast('Abriendo tracking naviero de ${s.carrier}…');event.stopPropagation()">🛳 Track naviero</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+  updateGridCount();
+}
+
+// ═══════════════════════════════════════════
+// TOGGLE CARD EXPAND
+// ═══════════════════════════════════════════
+function toggleCard(card) {
+  const isExp = card.classList.contains('expanded');
+  document.querySelectorAll('.ship-card').forEach(c => c.classList.remove('expanded'));
+  if (!isExp) card.classList.add('expanded');
+}
+
+// ═══════════════════════════════════════════
+// FILTER
+// ═══════════════════════════════════════════
+function filterKpi(status) {
+  activeFilter = status;
+  document.querySelectorAll('.kpi-card').forEach(c => c.classList.remove('active-filter'));
+  const idMap = { all:'kpi-all', transit:'kpi-transit', aduana:'kpi-aduana', alerta:'kpi-alerta' };
+  if (idMap[status]) document.getElementById(idMap[status]).classList.add('active-filter');
+
+  document.querySelectorAll('.ship-card').forEach(c => {
+    c.classList.toggle('hidden', status !== 'all' && c.dataset.status !== status);
+  });
+  updateGridCount();
+}
+
+function filterSearch(q) {
+  const lower = q.toLowerCase().trim();
+  document.querySelectorAll('.ship-card').forEach(c => {
+    const match = c.textContent.toLowerCase().includes(lower);
+    c.classList.toggle('hidden', !match);
+  });
+  updateGridCount();
+}
+
+function resetFilter() {
+  activeFilter = 'all';
+  document.querySelectorAll('.kpi-card').forEach(c => c.classList.remove('active-filter'));
+  document.getElementById('kpi-all').classList.add('active-filter');
+  document.getElementById('search-input').value = '';
+  document.querySelectorAll('.ship-card').forEach(c => c.classList.remove('hidden'));
+  updateGridCount();
+}
+
+function updateGridCount() {
+  const visible = document.querySelectorAll('.ship-card:not(.hidden)').length;
+  const label = activeFilter === 'all' ? `Embarques activos (${visible})` : `Mostrando: ${visible} embarque${visible !== 1 ? 's' : ''}`;
+  document.getElementById('grid-count').textContent = label;
+}
+
+// ═══════════════════════════════════════════
+// DOCUMENTS RENDER
+// ═══════════════════════════════════════════
+function renderDocuments(docs, cfg) {
+  const tbody = document.getElementById('doc-tbody');
+  if (!docs.length) {
+    tbody.innerHTML = `<tr><td colspan="5" style="padding:28px;text-align:center;color:var(--ink4);">Sin documentos disponibles.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = docs.map(d => `
+    <tr onclick="showToast('Descargando ${d.filename}…')">
+      <td>
+        <div class="doc-name-cell">
+          <div class="doc-icon-box" style="background:${d.iconBg}">${d.icon}</div>
+          <span class="doc-name-text">${d.type}</span>
+          ${d.isNew ? '<span class="new-badge">Nuevo</span>' : ''}
+        </div>
+      </td>
+      <td class="col-op">${d.shipmentId}</td>
+      <td class="col-date">${d.date}</td>
+      <td class="col-size">${d.size}</td>
+      <td style="text-align:right">
+        <button class="act-btn" style="font-size:0.6875rem;padding:5px 10px" onclick="event.stopPropagation();showToast('Descargando ${d.filename}…')">↓ Descargar</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// ═══════════════════════════════════════════
+// TABS
+// ═══════════════════════════════════════════
+function showTab(tab) {
+  ['embarques','documentos','historial'].forEach(t => {
+    document.getElementById(`tab-${t}`).style.display = t === tab ? '' : 'none';
+    document.getElementById(`nav-${t}`).classList.toggle('active', t === tab);
+  });
+}
+
+// ═══════════════════════════════════════════
+// CONTACT MODAL
+// ═══════════════════════════════════════════
+function openContact(shipmentId) {
+  document.getElementById('modal-shipment').value = shipmentId || '';
+  document.getElementById('modal-msg').value = '';
+  if (tenantConfig.client) {
+    document.getElementById('modal-am-sub').textContent =
+      tenantConfig.client.account_manager + ' · ' + tenantConfig.client.account_manager_email;
+  }
+  document.getElementById('modal-backdrop').classList.add('open');
+}
+
+function closeContact(e) {
+  if (e.target === document.getElementById('modal-backdrop')) closeModal();
+}
+
+function closeModal() {
+  document.getElementById('modal-backdrop').classList.remove('open');
+}
+
+async function sendContact() {
+  const msg = document.getElementById('modal-msg').value.trim();
+  if (!msg) { showToast('Escribí tu consulta antes de enviar.'); return; }
+  try {
+    const res = await fetch('/api/contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tenant: currentTenant,
+        message: msg,
+        shipmentId: document.getElementById('modal-shipment').value
+      })
+    });
+    const data = await res.json();
+    closeModal();
+    showToast('✓ ' + data.message);
+  } catch(e) {
+    showToast('Error al enviar. Intentá de nuevo.');
+  }
+}
+
+// ═══════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════
+let _toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('visible');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => t.classList.remove('visible'), 3000);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,66 @@
+{
+  "lateam": {
+    "id": "lateam",
+    "name": "LATEAM FOODS",
+    "initials": "LF",
+    "tagline": "Comercio exterior de alimentos · LATAM",
+    "colorPrimary": "#0A1628",
+    "colorAccent": "#00C896",
+    "colorAccentHover": "#00a07a",
+    "client": {
+      "name": "Grupo Distribuciones SA",
+      "initials": "GD",
+      "contact": "+54 11 4800-0000",
+      "account_manager": "Valentina Torres",
+      "account_manager_email": "v.torres@lateamfoods.com"
+    }
+  },
+  "nipcargo": {
+    "id": "nipcargo",
+    "name": "NIP CARGO",
+    "initials": "NC",
+    "tagline": "Soluciones logísticas internacionales",
+    "colorPrimary": "#0c2044",
+    "colorAccent": "#3B8BD4",
+    "colorAccentHover": "#2a6fb8",
+    "client": {
+      "name": "Alimentos del Centro SA",
+      "initials": "AC",
+      "contact": "+54 341 420-0000",
+      "account_manager": "Rodrigo Méndez",
+      "account_manager_email": "r.mendez@nipcargo.com"
+    }
+  },
+  "aramis": {
+    "id": "aramis",
+    "name": "ARAMIS GT",
+    "initials": "AG",
+    "tagline": "Freight forwarder internacional",
+    "colorPrimary": "#1a1a1a",
+    "colorAccent": "#F59E0B",
+    "colorAccentHover": "#d97706",
+    "client": {
+      "name": "Transportes Río SA",
+      "initials": "TR",
+      "contact": "+54 11 5200-0000",
+      "account_manager": "Carolina Ríos",
+      "account_manager_email": "c.rios@aramis-gt.com"
+    }
+  },
+  "silver": {
+    "id": "silver",
+    "name": "SILVER FREIGHT",
+    "initials": "SF",
+    "tagline": "Logística marítima y aérea",
+    "colorPrimary": "#1c2a3a",
+    "colorAccent": "#F97316",
+    "colorAccentHover": "#ea6c0a",
+    "client": {
+      "name": "Exportadora Sur SRL",
+      "initials": "ES",
+      "contact": "+54 261 430-0000",
+      "account_manager": "Martín Álvarez",
+      "account_manager_email": "m.alvarez@silverfreight.com"
+    }
+  }
+}

@@ -1,0 +1,98 @@
+[
+  {
+    "id": "doc-001",
+    "tenant": "lateam",
+    "shipmentId": "OP-2025-038",
+    "type": "Bill of Lading",
+    "icon": "📜",
+    "iconBg": "#E6F1FB",
+    "filename": "BL_OP2025-038_MSC.pdf",
+    "size": "312 KB",
+    "date": "24 Mar 2025",
+    "isNew": true
+  },
+  {
+    "id": "doc-002",
+    "tenant": "lateam",
+    "shipmentId": "OP-2025-041",
+    "type": "Packing List",
+    "icon": "📋",
+    "iconBg": "#E1F5EE",
+    "filename": "PackingList_OP2025-041.pdf",
+    "size": "245 KB",
+    "date": "20 Mar 2025",
+    "isNew": true
+  },
+  {
+    "id": "doc-003",
+    "tenant": "lateam",
+    "shipmentId": "OP-2025-041",
+    "type": "Certificado de Origen",
+    "icon": "🏛️",
+    "iconBg": "#FAEEDA",
+    "filename": "CertOrigen_OP2025-041_GR.pdf",
+    "size": "118 KB",
+    "date": "18 Mar 2025",
+    "isNew": false
+  },
+  {
+    "id": "doc-004",
+    "tenant": "lateam",
+    "shipmentId": "OP-2025-038",
+    "type": "Invoice comercial",
+    "icon": "🧾",
+    "iconBg": "#E1F5EE",
+    "filename": "Invoice_OP2025-038.pdf",
+    "size": "88 KB",
+    "date": "15 Mar 2025",
+    "isNew": false
+  },
+  {
+    "id": "doc-005",
+    "tenant": "lateam",
+    "shipmentId": "OP-2025-035",
+    "type": "Póliza de seguro",
+    "icon": "🛡️",
+    "iconBg": "#EEEDFE",
+    "filename": "Poliza_OP2025-035.pdf",
+    "size": "201 KB",
+    "date": "12 Mar 2025",
+    "isNew": false
+  },
+  {
+    "id": "doc-006",
+    "tenant": "lateam",
+    "shipmentId": "OP-2025-041",
+    "type": "Carta de crédito",
+    "icon": "💳",
+    "iconBg": "#FAECE7",
+    "filename": "LC_OP2025-041.pdf",
+    "size": "156 KB",
+    "date": "10 Mar 2025",
+    "isNew": false
+  },
+  {
+    "id": "doc-007",
+    "tenant": "lateam",
+    "shipmentId": "OP-2025-035",
+    "type": "Certificado fitosanitario",
+    "icon": "🌿",
+    "iconBg": "#E1F5EE",
+    "filename": "FitoSanitario_OP2025-035.pdf",
+    "size": "94 KB",
+    "date": "08 Mar 2025",
+    "isNew": false
+  },
+  {
+    "id": "doc-008",
+    "tenant": "lateam",
+    "shipmentId": "OP-2025-044",
+    "type": "Bill of Lading",
+    "icon": "📜",
+    "iconBg": "#E6F1FB",
+    "filename": "BL_OP2025-044_HS.pdf",
+    "size": "298 KB",
+    "date": "14 Mar 2025",
+    "isNew": false
+  }
+]
